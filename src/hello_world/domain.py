@@ -13,7 +13,6 @@ class Shift:
     day_of_week: str
     start_time: time
     end_time: time
-    # min_staff_required: int
 
     def __str__(self):
         return f'{self.day_of_week} {self.start_time.strftime("%H:%M")}'

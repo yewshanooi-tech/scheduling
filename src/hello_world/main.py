@@ -2,7 +2,7 @@ from timefold.solver.config import (SolverConfig, ScoreDirectorFactoryConfig,
                                     TerminationConfig, Duration)
 from timefold.solver import SolverFactory
 from enum import Enum
-from datetime import time
+# from datetime import time
 import logging
 import argparse
 import csv
@@ -45,9 +45,11 @@ def main():
 
     # Solve the problem
     solver = solver_factory.build_solver()
+    print("\n────────────────────\n")
     solution = solver.solve(problem)
 
     # Visualize the solution
+    print("\n────────────────────\n")
     print_timetable(solution)
 
 
