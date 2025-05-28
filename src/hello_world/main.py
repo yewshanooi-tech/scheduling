@@ -17,18 +17,16 @@ LOGGER = logging.getLogger('app')
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Solve a school timetable.')
-    # Input file parameter - START
-    parser.add_argument('--input_file', dest='input_file', action='store',
+    parser = argparse.ArgumentParser(description='Solve a florist scheduling problem.')
+    parser.add_argument('--input', dest='input_file', action='store',
                         default=None,
                         help='Path to external CSV file for timetable data')
-    # Input file parameter - END
     args = parser.parse_args()
 
     solver_factory = SolverFactory.create(
         SolverConfig(
             solution_class=Timetable,
-            entity_class_list=[Lesson],
+            entity_class_list=[Assignment],
             score_director_factory_config=ScoreDirectorFactoryConfig(
                 constraint_provider_function=define_constraints
             ),
@@ -43,7 +41,7 @@ def main():
     if args.input_file:
         problem = load_timetable_from_csv(args.input_file)
     else:
-        raise ValueError("No input file provided. Please use the --input_file flag.")
+        raise ValueError("No file provided. Please use the --input flag to import a file.")
 
     # Solve the problem
     solver = solver_factory.build_solver()
@@ -54,95 +52,100 @@ def main():
 
 
 
-# Load timetable from CSV - START
+
 
 def load_timetable_from_csv(csv_path: str) -> Timetable:
-    # Example CSV columns: subject,teacher,student_group,day_of_week,start_time,end_time,room
-    lessons = []
-    timeslot_set = set()
-    room_set = set()
+    # CSV columns: florist,skill_level,day_of_week,start_time,end_time,team
+    assignments = []
+    shift_set = set()
+    team_set = set()
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            subject = row['subject']
-            teacher = row['teacher']
-            student_group = row['student_group']
+            florist = row['florist']
+            skill_level = row['skill_level']
             day_of_week = row['day_of_week']
             start_time = datetime.strptime(row['start_time'], '%H:%M').time()
             end_time = datetime.strptime(row['end_time'], '%H:%M').time()
-            room_name = row['room']
-            timeslot_set.add((day_of_week, start_time, end_time))
-            room_set.add(room_name)
-            lessons.append((subject, teacher, student_group, day_of_week, start_time, end_time, room_name))
+            team_name = row['team']
+            shift_set.add((day_of_week, start_time, end_time))
+            team_set.add(team_name)
+            assignments.append((florist, skill_level, day_of_week, start_time, end_time, team_name))
+
+            # [NOTE] Modify the CSV columns when needed
 
 
-    # Define the correct weekday order - START
-    
+    # Define the correct weekday order
     weekday_order = {'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6}
-    def timeslot_sort_key(x):
+    def shift_sort_key(x):
         day, start, end = x
         return (weekday_order.get(day.upper(), 99), start, end)
-    timeslots = [Timeslot(day, start, end) for (day, start, end) in sorted(timeslot_set, key=timeslot_sort_key)]
-    
-    # Define the correct weekday order - START
+    shifts = [Shift(day, start, end) for (day, start, end) in sorted(shift_set, key=shift_sort_key)]
 
-    rooms = [Room(f'Room {name}') for name in sorted(room_set)]
-    timeslot_map = {(t.day_of_week, t.start_time, t.end_time): t for t in timeslots}
-    room_map = {r.name.replace('Room ', ''): r for r in rooms}
+
+    teams = [Team(name) for name in sorted(team_set)]
+    shift_map = {(s.day_of_week, s.start_time, s.end_time): s for s in shifts}
+    team_map = {t.name: t for t in teams}
     def id_generator():
         current = 0
         while True:
             yield str(current)
             current += 1
     ids = id_generator()
-    lesson_objs = []
-    for subject, teacher, student_group, day, start, end, room_name in lessons:
-        lesson_objs.append(Lesson(next(ids), subject, teacher, student_group,
-                                 timeslot=timeslot_map[(day, start, end)],
-                                 room=room_map[room_name]))
-    return Timetable('EXTERNAL', timeslots, rooms, lesson_objs)
-
-# Load timetable from CSV - END
+    assignment_objs = []
+    for florist, skill_level, day, start, end, team_name in assignments:
+        assignment_objs.append(Assignment(next(ids), florist, skill_level,
+                                         shift=shift_map[(day, start, end)],
+                                         team=team_map[team_name]))
+    return Timetable('EXTERNAL', shifts, teams, assignment_objs)
 
 
 
-def print_timetable(time_table: Timetable) -> None:
+
+
+def print_timetable(timetable: Timetable) -> None:
     LOGGER.info("")
 
     column_width = 18
-    rooms = time_table.rooms
-    timeslots = time_table.timeslots
-    lessons = time_table.lessons
-    lesson_map = {
-        (lesson.room.name, lesson.timeslot.day_of_week, lesson.timeslot.start_time): lesson
-        for lesson in lessons
-        if lesson.room is not None and lesson.timeslot is not None
+    teams = timetable.teams
+    shifts = timetable.shifts
+    assignments = timetable.assignments
+    assignment_map = {
+        (assignment.team.name if assignment.team else '',
+         assignment.shift.day_of_week if assignment.shift else '',
+         assignment.shift.start_time if assignment.shift else ''): assignment
+        for assignment in assignments
+        if assignment.team is not None and assignment.shift is not None
     }
-    row_format = ("|{:<" + str(column_width) + "}") * (len(rooms) + 1) + "|"
-    sep_format = "+" + ((("-" * column_width) + "+") * (len(rooms) + 1))
+    row_format = ("|{:<" + str(column_width) + "}") * (len(teams) + 1) + "|"
+    sep_format = "+" + (("-" * column_width + "+") * (len(teams) + 1))
 
     LOGGER.info(sep_format)
-    LOGGER.info(row_format.format('', *[room.name for room in rooms]))
+    LOGGER.info(row_format.format('', *[f'Team {team.name}' for team in teams]))
     LOGGER.info(sep_format)
 
-    for timeslot in timeslots:
-        def get_row_lessons():
-            for room in rooms:
-                yield lesson_map.get((room.name, timeslot.day_of_week, timeslot.start_time),
-                                     Lesson('', '', '', ''))
+    for shift in shifts:
+        def get_row_assignments():
+            for team in teams:
+                yield assignment_map.get((team.name, shift.day_of_week, shift.start_time),
+                                        Assignment('', '', '', None, None))
+                
+                # [NOTE] Modify the Assignment() object when editing domain.py Assignment class
 
-        row_lessons = [*get_row_lessons()]
-        LOGGER.info(row_format.format(str(timeslot), *[lesson.subject for lesson in row_lessons]))
-        LOGGER.info(row_format.format('', *[lesson.teacher for lesson in row_lessons]))
-        LOGGER.info(row_format.format('', *[lesson.student_group for lesson in row_lessons]))
+        row_assignments = [*get_row_assignments()]
+        LOGGER.info(row_format.format(str(shift), *[a.florist for a in row_assignments]))
+        LOGGER.info(row_format.format('', *[a.skill_level for a in row_assignments]))
+        
+        # [NOTE] Add more logging here for future attributes
+
         LOGGER.info(sep_format)
 
-    unassigned_lessons = [lesson for lesson in lessons if lesson.room is None or lesson.timeslot is None]
-    if len(unassigned_lessons) > 0:
+    unassigned = [a for a in assignments if a.team is None or a.shift is None]
+    if len(unassigned) > 0:
         LOGGER.info("")
-        LOGGER.info("Unassigned lessons")
-        for lesson in unassigned_lessons:
-            LOGGER.info(f'    {lesson.subject} - {lesson.teacher} - {lesson.student_group}')
+        LOGGER.info("Unassigned assignments")
+        for a in unassigned:
+            LOGGER.info(f'    {a.florist} - {a.skill_level}')
 
 
 class DemoData(Enum):

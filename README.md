@@ -23,10 +23,10 @@ A simple scheduling system for Florists.
   pip install -e .
 ```
 
-4. Run the app using `--input_file` flag with a .csv file
+4. Run the app using `--input` flag with a .csv file
 
 ```bash
-  run-app --input_file my_timetable.csv
+  run-app --input timetable.csv
 ```
 
 

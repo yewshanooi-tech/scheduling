@@ -1,0 +1,11 @@
+florist,skill_level,day_of_week,start_time,end_time,team
+Alice,Expert,MONDAY,08:00,12:00,A
+Bob,Intermediate,TUESDAY,09:00,13:00,B
+Carol,Beginner,WEDNESDAY,10:00,14:00,C
+Dave,Expert,THURSDAY,11:00,15:00,A
+Eve,Intermediate,FRIDAY,12:00,16:00,B
+Faythe,Beginner,MONDAY,13:00,17:00,C
+Grace,Expert,TUESDAY,14:00,18:00,A
+Heidi,Intermediate,WEDNESDAY,08:00,12:00,B
+Ivan,Beginner,THURSDAY,09:00,13:00,C
+Judy,Expert,FRIDAY,10:00,14:00,A

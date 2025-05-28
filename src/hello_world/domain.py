@@ -9,17 +9,18 @@ from typing import Annotated
 
 
 @dataclass
-class Timeslot:
+class Shift:
     day_of_week: str
     start_time: time
     end_time: time
+    # min_staff_required: int
 
     def __str__(self):
         return f'{self.day_of_week} {self.start_time.strftime("%H:%M")}'
 
 
 @dataclass
-class Room:
+class Team:
     name: str
 
     def __str__(self):
@@ -28,25 +29,25 @@ class Room:
 
 @planning_entity
 @dataclass
-class Lesson:
+class Assignment:
     id: Annotated[str, PlanningId]
-    subject: str
-    teacher: str
-    student_group: str
-    timeslot: Annotated[Timeslot | None, PlanningVariable] = field(default=None)
-    room: Annotated[Room | None, PlanningVariable] = field(default=None)
+    florist: str
+    skill_level: str
+    # tenure_months: int
+    shift: Annotated[Shift | None, PlanningVariable] = field(default=None)
+    team: Annotated[Team | None, PlanningVariable] = field(default=None)
 
 
 @planning_solution
 @dataclass
 class Timetable:
     id: str
-    timeslots: Annotated[list[Timeslot],
+    shifts: Annotated[list[Shift],
                          ProblemFactCollectionProperty,
                          ValueRangeProvider]
-    rooms: Annotated[list[Room],
+    teams: Annotated[list[Team],
                      ProblemFactCollectionProperty,
                      ValueRangeProvider]
-    lessons: Annotated[list[Lesson],
+    assignments: Annotated[list[Assignment],
                        PlanningEntityCollectionProperty]
     score: Annotated[HardSoftScore, PlanningScore] = field(default=None)
