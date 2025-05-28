@@ -22,6 +22,9 @@ class Shift:
 @dataclass
 class Team:
     name: str
+    # lead: str
+    # acting_lead: str
+    # members: str
 
     def __str__(self):
         return f'{self.name}'
@@ -33,7 +36,7 @@ class Assignment:
     id: Annotated[str, PlanningId]
     florist: str
     skill_level: str
-    # tenure_months: int
+    tenure_months: int
     shift: Annotated[Shift | None, PlanningVariable] = field(default=None)
     team: Annotated[Team | None, PlanningVariable] = field(default=None)
 

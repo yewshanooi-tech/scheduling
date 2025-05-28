@@ -55,7 +55,7 @@ def main():
 
 
 def load_timetable_from_csv(csv_path: str) -> Timetable:
-    # CSV columns: florist,skill_level,day_of_week,start_time,end_time,team
+    # CSV columns: florist,skill_level,tenure_months,day_of_week,start_time,end_time,team
     assignments = []
     shift_set = set()
     team_set = set()
@@ -64,15 +64,14 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
         for row in reader:
             florist = row['florist']
             skill_level = row['skill_level']
+            tenure_months = int(row['tenure_months'])
             day_of_week = row['day_of_week']
             start_time = datetime.strptime(row['start_time'], '%H:%M').time()
             end_time = datetime.strptime(row['end_time'], '%H:%M').time()
             team_name = row['team']
             shift_set.add((day_of_week, start_time, end_time))
             team_set.add(team_name)
-            assignments.append((florist, skill_level, day_of_week, start_time, end_time, team_name))
-
-            # [NOTE] Modify the CSV columns when needed
+            assignments.append((florist, skill_level, tenure_months, day_of_week, start_time, end_time, team_name))
 
 
     # Define the correct weekday order
@@ -93,8 +92,8 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             current += 1
     ids = id_generator()
     assignment_objs = []
-    for florist, skill_level, day, start, end, team_name in assignments:
-        assignment_objs.append(Assignment(next(ids), florist, skill_level,
+    for florist, skill_level, tenure_months, day, start, end, team_name in assignments:
+        assignment_objs.append(Assignment(next(ids), florist, skill_level, tenure_months,
                                          shift=shift_map[(day, start, end)],
                                          team=team_map[team_name]))
     return Timetable('EXTERNAL', shifts, teams, assignment_objs)
@@ -127,16 +126,22 @@ def print_timetable(timetable: Timetable) -> None:
     for shift in shifts:
         def get_row_assignments():
             for team in teams:
-                yield assignment_map.get((team.name, shift.day_of_week, shift.start_time),
-                                        Assignment('', '', '', None, None))
-                
-                # [NOTE] Modify the Assignment() object when editing domain.py Assignment class
+
+                yield Assignment(
+                    id='',
+                    florist='',
+                    skill_level='',
+                    tenure_months=0,
+                    shift=shift,
+                    team=team
+                ) if (team.name, shift.day_of_week, shift.start_time) not in assignment_map else assignment_map[(team.name, shift.day_of_week, shift.start_time)]
 
         row_assignments = [*get_row_assignments()]
         LOGGER.info(row_format.format(str(shift), *[a.florist for a in row_assignments]))
         LOGGER.info(row_format.format('', *[a.skill_level for a in row_assignments]))
-        
-        # [NOTE] Add more logging here for future attributes
+
+        # Display empty string if tenure_months is 0, else show the value
+        LOGGER.info(row_format.format('', *[str(a.tenure_months) if a.tenure_months != 0 else '' for a in row_assignments]))
 
         LOGGER.info(sep_format)
 
@@ -145,7 +150,7 @@ def print_timetable(timetable: Timetable) -> None:
         LOGGER.info("")
         LOGGER.info("Unassigned assignments")
         for a in unassigned:
-            LOGGER.info(f'    {a.florist} - {a.skill_level}')
+            LOGGER.info(f'    {a.florist} - {a.skill_level} - {a.tenure_months}')
 
 
 class DemoData(Enum):

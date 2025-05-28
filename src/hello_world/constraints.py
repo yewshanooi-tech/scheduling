@@ -21,3 +21,4 @@ def florist_conflict(constraint_factory: ConstraintFactory) -> Constraint:
                                   Joiners.equal(lambda a: a.florist))
             .penalize(HardSoftScore.ONE_HARD)
             .as_constraint("Florist conflict"))
+
