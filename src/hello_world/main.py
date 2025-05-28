@@ -141,7 +141,7 @@ def print_timetable(timetable: Timetable) -> None:
         LOGGER.info(row_format.format('', *[a.skill_level for a in row_assignments]))
 
         # Display empty string if tenure_months is 0, else show the value
-        LOGGER.info(row_format.format('', *[str(a.tenure_months) if a.tenure_months != 0 else '' for a in row_assignments]))
+        LOGGER.info(row_format.format('', *[f"{a.tenure_months} months" if a.tenure_months != 0 else '' for a in row_assignments]))
 
         LOGGER.info(sep_format)
 

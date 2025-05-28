@@ -53,4 +53,4 @@ class Timetable:
                      ValueRangeProvider]
     assignments: Annotated[list[Assignment],
                        PlanningEntityCollectionProperty]
-    score: Annotated[HardSoftScore, PlanningScore] = field(default=None)
+    score: Annotated[HardSoftScore, PlanningScore] = field(default=None)  # type: ignore[assignment]
