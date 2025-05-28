@@ -18,10 +18,10 @@ LOGGER = logging.getLogger('app')
 
 def main():
     parser = argparse.ArgumentParser(description='Solve a school timetable.')
-    parser.add_argument('--demo_data', dest='demo_data', action='store',
-                        choices=['SMALL', 'LARGE'],
-                        default='SMALL',
-                        help='Demo dataset to use')
+    # parser.add_argument('--demo_data', dest='demo_data', action='store',
+    #                     choices=['SMALL', 'LARGE'],
+    #                     default='SMALL',
+    #                     help='Demo dataset to use')
     # Input file parameter - START
     parser.add_argument('--input_file', dest='input_file', action='store',
                         default=None,
@@ -47,8 +47,9 @@ def main():
     if args.input_file:
         problem = load_timetable_from_csv(args.input_file)
     else:
-        demo_data = getattr(DemoData, args.demo_data)
-        problem = generate_demo_data(demo_data)
+        # demo_data = getattr(DemoData, args.demo_data)
+        # problem = generate_demo_data(demo_data)
+        raise ValueError("No input file provided. Please use the --input_file flag.")
 
     # Solve the problem
     solver = solver_factory.build_solver()
@@ -58,135 +59,135 @@ def main():
     print_timetable(solution)
 
 
-def generate_demo_data(demo_data: 'DemoData') -> Timetable:
-    days = (('MONDAY', 'TUESDAY') if demo_data == DemoData.SMALL
-            else ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'))
-    timeslots = [
-        Timeslot(day, start, start.replace(hour=start.hour + 1))
-        for day in days
-        for start in (time(8, 30), time(9, 30), time(10, 30), time(13, 30), time(14, 30))
-    ]
-
-    room_ids = (('A', 'B', 'C') if demo_data == DemoData.SMALL
-                else ('A', 'B', 'C', 'D', 'E', 'F'))
-    rooms = [Room(f'Room {name}') for name in room_ids]
-
-    lessons = []
-
-    def id_generator():
-        current = 0
-        while True:
-            yield str(current)
-            current += 1
-
-    ids = id_generator()
-    lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
-    lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
-    lessons.append(Lesson(next(ids), "Physics", "M. Curie", "9th grade"))
-    lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "9th grade"))
-    lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "9th grade"))
-    lessons.append(Lesson(next(ids), "History", "I. Jones", "9th grade"))
-    lessons.append(Lesson(next(ids), "English", "I. Jones", "9th grade"))
-    lessons.append(Lesson(next(ids), "English", "I. Jones", "9th grade"))
-    lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "9th grade"))
-    lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "9th grade"))
-    if demo_data == DemoData.LARGE:
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
-        lessons.append(Lesson(next(ids), "ICT", "A. Turing", "9th grade"))
-        lessons.append(Lesson(next(ids), "Physics", "M. Curie", "9th grade"))
-        lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "9th grade"))
-        lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "9th grade"))
-        lessons.append(Lesson(next(ids), "History", "I. Jones", "9th grade"))
-        lessons.append(Lesson(next(ids), "English", "I. Jones", "9th grade"))
-        lessons.append(Lesson(next(ids), "Drama", "I. Jones", "9th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "9th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "9th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "9th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "9th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "9th grade"))
-
-    lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
-    lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
-    lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
-    lessons.append(Lesson(next(ids), "Physics", "M. Curie", "10th grade"))
-    lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "10th grade"))
-    lessons.append(Lesson(next(ids), "French", "M. Curie", "10th grade"))
-    lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "10th grade"))
-    lessons.append(Lesson(next(ids), "History", "I. Jones", "10th grade"))
-    lessons.append(Lesson(next(ids), "English", "P. Cruz", "10th grade"))
-    lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "10th grade"))
-    if demo_data == DemoData.LARGE:
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
-        lessons.append(Lesson(next(ids), "ICT", "A. Turing", "10th grade"))
-        lessons.append(Lesson(next(ids), "Physics", "M. Curie", "10th grade"))
-        lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "10th grade"))
-        lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "10th grade"))
-        lessons.append(Lesson(next(ids), "History", "I. Jones", "10th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "10th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "10th grade"))
-        lessons.append(Lesson(next(ids), "Drama", "I. Jones", "10th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "10th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "10th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "10th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "10th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "10th grade"))
-    
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
-        lessons.append(Lesson(next(ids), "ICT", "A. Turing", "11th grade"))
-        lessons.append(Lesson(next(ids), "Physics", "M. Curie", "11th grade"))
-        lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "11th grade"))
-        lessons.append(Lesson(next(ids), "French", "M. Curie", "11th grade"))
-        lessons.append(Lesson(next(ids), "Physics", "M. Curie", "11th grade"))
-        lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "11th grade"))
-        lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "11th grade"))
-        lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "11th grade"))
-        lessons.append(Lesson(next(ids), "History", "I. Jones", "11th grade"))
-        lessons.append(Lesson(next(ids), "History", "I. Jones", "11th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "11th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "11th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "11th grade"))
-        lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "11th grade"))
-        lessons.append(Lesson(next(ids), "Drama", "P. Cruz", "11th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "11th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "11th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "11th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "11th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "11th grade"))
-    
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
-        lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
-        lessons.append(Lesson(next(ids), "ICT", "A. Turing", "12th grade"))
-        lessons.append(Lesson(next(ids), "Physics", "M. Curie", "12th grade"))
-        lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "12th grade"))
-        lessons.append(Lesson(next(ids), "French", "M. Curie", "12th grade"))
-        lessons.append(Lesson(next(ids), "Physics", "M. Curie", "12th grade"))
-        lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "12th grade"))
-        lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "12th grade"))
-        lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "12th grade"))
-        lessons.append(Lesson(next(ids), "History", "I. Jones", "12th grade"))
-        lessons.append(Lesson(next(ids), "History", "I. Jones", "12th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "12th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "12th grade"))
-        lessons.append(Lesson(next(ids), "English", "P. Cruz", "12th grade"))
-        lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "12th grade"))
-        lessons.append(Lesson(next(ids), "Drama", "P. Cruz", "12th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "12th grade"))
-        lessons.append(Lesson(next(ids), "Art", "S. Dali", "12th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "12th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "12th grade"))
-        lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "12th grade"))
-
-    return Timetable(demo_data.name, timeslots, rooms, lessons)
+# def generate_demo_data(demo_data: 'DemoData') -> Timetable:
+#     days = (('MONDAY', 'TUESDAY') if demo_data == DemoData.SMALL
+#             else ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'))
+#     timeslots = [
+#         Timeslot(day, start, start.replace(hour=start.hour + 1))
+#         for day in days
+#         for start in (time(8, 30), time(9, 30), time(10, 30), time(13, 30), time(14, 30))
+#     ]
+# 
+#     room_ids = (('A', 'B', 'C') if demo_data == DemoData.SMALL
+#                 else ('A', 'B', 'C', 'D', 'E', 'F'))
+#     rooms = [Room(f'Room {name}') for name in room_ids]
+# 
+#     lessons = []
+# 
+#     def id_generator():
+#         current = 0
+#         while True:
+#             yield str(current)
+#             current += 1
+# 
+#     ids = id_generator()
+#     lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
+#     lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
+#     lessons.append(Lesson(next(ids), "Physics", "M. Curie", "9th grade"))
+#     lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "9th grade"))
+#     lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "9th grade"))
+#     lessons.append(Lesson(next(ids), "History", "I. Jones", "9th grade"))
+#     lessons.append(Lesson(next(ids), "English", "I. Jones", "9th grade"))
+#     lessons.append(Lesson(next(ids), "English", "I. Jones", "9th grade"))
+#     lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "9th grade"))
+#     lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "9th grade"))
+#     if demo_data == DemoData.LARGE:
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "9th grade"))
+#         lessons.append(Lesson(next(ids), "ICT", "A. Turing", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Physics", "M. Curie", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "9th grade"))
+#         lessons.append(Lesson(next(ids), "History", "I. Jones", "9th grade"))
+#         lessons.append(Lesson(next(ids), "English", "I. Jones", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Drama", "I. Jones", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "9th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "9th grade"))
+# 
+#     lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
+#     lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
+#     lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
+#     lessons.append(Lesson(next(ids), "Physics", "M. Curie", "10th grade"))
+#     lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "10th grade"))
+#     lessons.append(Lesson(next(ids), "French", "M. Curie", "10th grade"))
+#     lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "10th grade"))
+#     lessons.append(Lesson(next(ids), "History", "I. Jones", "10th grade"))
+#     lessons.append(Lesson(next(ids), "English", "P. Cruz", "10th grade"))
+#     lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "10th grade"))
+#     if demo_data == DemoData.LARGE:
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "10th grade"))
+#         lessons.append(Lesson(next(ids), "ICT", "A. Turing", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Physics", "M. Curie", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "10th grade"))
+#         lessons.append(Lesson(next(ids), "History", "I. Jones", "10th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "10th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Drama", "I. Jones", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "10th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "10th grade"))
+#     
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "11th grade"))
+#         lessons.append(Lesson(next(ids), "ICT", "A. Turing", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Physics", "M. Curie", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "11th grade"))
+#         lessons.append(Lesson(next(ids), "French", "M. Curie", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Physics", "M. Curie", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "11th grade"))
+#         lessons.append(Lesson(next(ids), "History", "I. Jones", "11th grade"))
+#         lessons.append(Lesson(next(ids), "History", "I. Jones", "11th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "11th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "11th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Drama", "P. Cruz", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "11th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "11th grade"))
+#     
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Math", "A. Turing", "12th grade"))
+#         lessons.append(Lesson(next(ids), "ICT", "A. Turing", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Physics", "M. Curie", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Chemistry", "M. Curie", "12th grade"))
+#         lessons.append(Lesson(next(ids), "French", "M. Curie", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Physics", "M. Curie", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Geography", "C. Darwin", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Biology", "C. Darwin", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Geology", "C. Darwin", "12th grade"))
+#         lessons.append(Lesson(next(ids), "History", "I. Jones", "12th grade"))
+#         lessons.append(Lesson(next(ids), "History", "I. Jones", "12th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "12th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "12th grade"))
+#         lessons.append(Lesson(next(ids), "English", "P. Cruz", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Spanish", "P. Cruz", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Drama", "P. Cruz", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Art", "S. Dali", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "12th grade"))
+#         lessons.append(Lesson(next(ids), "Physical education", "C. Lewis", "12th grade"))
+# 
+#     return Timetable(demo_data.name, timeslots, rooms, lessons)
 
 
 

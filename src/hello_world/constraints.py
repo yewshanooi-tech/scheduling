@@ -4,6 +4,7 @@ from datetime import time
 
 from .domain import Lesson
 
+
 @constraint_provider
 def define_constraints(constraint_factory: ConstraintFactory):
     return [
