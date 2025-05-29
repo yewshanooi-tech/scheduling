@@ -34,7 +34,7 @@ class Team:
 class Assignment:
     id: Annotated[str, PlanningId]
     florist: str
-    skill_level: str
+    skill: str
     tenure_months: int
     shift: Annotated[Shift | None, PlanningVariable] = field(default=None)
     team: Annotated[Team | None, PlanningVariable] = field(default=None)

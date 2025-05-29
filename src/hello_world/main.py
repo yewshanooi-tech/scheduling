@@ -51,13 +51,14 @@ def main():
     # Visualize the solution
     print("\n────────────────────\n")
     print_timetable(solution)
+    print("\n────────────────────\n")
 
 
 
 
 
 def load_timetable_from_csv(csv_path: str) -> Timetable:
-    # CSV columns: florist,skill_level,tenure_months,day_of_week,start_time,end_time,team
+    # CSV columns: florist,skill,tenure_months,day_of_week,start_time,end_time,team
     assignments = []
     shift_set = set()
     team_set = set()
@@ -65,7 +66,7 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
         reader = csv.DictReader(csvfile)
         for row in reader:
             florist = row['florist']
-            skill_level = row['skill_level']
+            skill = row['skill']
             tenure_months = int(row['tenure_months'])
             day_of_week = row['day_of_week']
             start_time = datetime.strptime(row['start_time'], '%H:%M').time()
@@ -73,7 +74,7 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             team_name = row['team']
             shift_set.add((day_of_week, start_time, end_time))
             team_set.add(team_name)
-            assignments.append((florist, skill_level, tenure_months, day_of_week, start_time, end_time, team_name))
+            assignments.append((florist, skill, tenure_months, day_of_week, start_time, end_time, team_name))
 
 
     # Define the correct weekday order
@@ -94,8 +95,8 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             current += 1
     ids = id_generator()
     assignment_objs = []
-    for florist, skill_level, tenure_months, day, start, end, team_name in assignments:
-        assignment_objs.append(Assignment(next(ids), florist, skill_level, tenure_months,
+    for florist, skill, tenure_months, day, start, end, team_name in assignments:
+        assignment_objs.append(Assignment(next(ids), florist, skill, tenure_months,
                                          shift=shift_map[(day, start, end)],
                                          team=team_map[team_name]))
     return Timetable('EXTERNAL', shifts, teams, assignment_objs)
@@ -105,8 +106,6 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
 
 
 def print_timetable(timetable: Timetable) -> None:
-    LOGGER.info("")
-
     column_width = 18
     teams = timetable.teams
     shifts = timetable.shifts
@@ -132,7 +131,7 @@ def print_timetable(timetable: Timetable) -> None:
                 yield Assignment(
                     id='',
                     florist='',
-                    skill_level='',
+                    skill='',
                     tenure_months=0,
                     shift=shift,
                     team=team
@@ -140,7 +139,7 @@ def print_timetable(timetable: Timetable) -> None:
 
         row_assignments = [*get_row_assignments()]
         LOGGER.info(row_format.format(str(shift), *[a.florist for a in row_assignments]))
-        LOGGER.info(row_format.format('', *[a.skill_level for a in row_assignments]))
+        LOGGER.info(row_format.format('', *[a.skill for a in row_assignments]))
 
         # Display empty string if tenure_months is 0, else show the value
         LOGGER.info(row_format.format('', *[f"{a.tenure_months} months" if a.tenure_months != 0 else '' for a in row_assignments]))
@@ -152,7 +151,7 @@ def print_timetable(timetable: Timetable) -> None:
         LOGGER.info("")
         LOGGER.info("Unassigned assignments")
         for a in unassigned:
-            LOGGER.info(f'    {a.florist} - {a.skill_level} - {a.tenure_months}')
+            LOGGER.info(f'    {a.florist} - {a.skill} - {a.tenure_months}')
 
 
 class DemoData(Enum):

@@ -43,3 +43,4 @@ def team_conflict(constraint_factory: ConstraintFactory) -> Constraint:
             .penalize(HardSoftScore.ONE_HARD, lambda _, count: count - 4)
             .as_constraint("Team capacity conflict"))
 
+

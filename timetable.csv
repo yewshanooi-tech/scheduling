@@ -1,4 +1,4 @@
-florist,skill_level,tenure_months,day_of_week,start_time,end_time,team
+florist,skill,tenure_months,day_of_week,start_time,end_time,team
 Alice,Senior,3,MONDAY,08:00,12:00,A
 Bob,Mid,2,TUESDAY,09:00,13:00,B
 Carol,Junior,1,WEDNESDAY,10:00,14:00,C
