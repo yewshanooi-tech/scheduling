@@ -62,20 +62,22 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
     assignments = []
     shift_set = set()
     team_set = set()
+    florist_map = {}
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            florist = row['florist']
+            florist_name = row['florist']
             skill = row['skill']
             tenure_months = int(row['tenure_months'])
+            if florist_name not in florist_map:
+                florist_map[florist_name] = Florist(florist_name, skill, tenure_months)
             day_of_week = row['day_of_week']
             start_time = datetime.strptime(row['start_time'], '%H:%M').time()
             end_time = datetime.strptime(row['end_time'], '%H:%M').time()
             team_name = row['team']
             shift_set.add((day_of_week, start_time, end_time))
             team_set.add(team_name)
-            assignments.append((florist, skill, tenure_months, day_of_week, start_time, end_time, team_name))
-
+            assignments.append((florist_name, day_of_week, start_time, end_time, team_name))
 
     # Define the correct weekday order
     weekday_order = {'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6}
@@ -95,11 +97,14 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             current += 1
     ids = id_generator()
     assignment_objs = []
-    for florist, skill, tenure_months, day, start, end, team_name in assignments:
-        assignment_objs.append(Assignment(next(ids), florist, skill, tenure_months,
-                                         shift=shift_map[(day, start, end)],
-                                         team=team_map[team_name]))
-    return Timetable('EXTERNAL', shifts, teams, assignment_objs)
+    for florist_name, day, start, end, team_name in assignments:
+        assignment_objs.append(Assignment(
+            next(ids),
+            florist_map[florist_name],
+            shift=shift_map[(day, start, end)],
+            team=team_map[team_name]
+        ))
+    return Timetable('EXTERNAL', list(florist_map.values()), teams, shifts, assignment_objs)
 
 
 
@@ -127,23 +132,17 @@ def print_timetable(timetable: Timetable) -> None:
     for shift in shifts:
         def get_row_assignments():
             for team in teams:
-
                 yield Assignment(
                     id='',
-                    florist='',
-                    skill='',
-                    tenure_months=0,
-                    shift=shift,
-                    team=team
+                    florist=Florist('', '', 0),
+                    team=team,
+                    shift=shift
                 ) if (team.name, shift.day_of_week, shift.start_time) not in assignment_map else assignment_map[(team.name, shift.day_of_week, shift.start_time)]
 
         row_assignments = [*get_row_assignments()]
-        LOGGER.info(row_format.format(str(shift), *[a.florist for a in row_assignments]))
-        LOGGER.info(row_format.format('', *[a.skill for a in row_assignments]))
-
-        # Display empty string if tenure_months is 0, else show the value
-        LOGGER.info(row_format.format('', *[f"{a.tenure_months} months" if a.tenure_months != 0 else '' for a in row_assignments]))
-
+        LOGGER.info(row_format.format(shift.day_of_week, *[a.florist.name for a in row_assignments]))
+        LOGGER.info(row_format.format(f"{shift.start_time.strftime('%H:%M')} - {shift.end_time.strftime('%H:%M')}", *[a.florist.skill for a in row_assignments]))
+        LOGGER.info(row_format.format('', *[f"{a.florist.tenure_months} months" if a.florist.tenure_months != 0 else '' for a in row_assignments]))
         LOGGER.info(sep_format)
 
     unassigned = [a for a in assignments if a.team is None or a.shift is None]
@@ -151,7 +150,7 @@ def print_timetable(timetable: Timetable) -> None:
         LOGGER.info("")
         LOGGER.info("Unassigned assignments")
         for a in unassigned:
-            LOGGER.info(f'    {a.florist} - {a.skill} - {a.tenure_months}')
+            LOGGER.info(f'    {a.florist.name} - {a.florist.skill} - {a.florist.tenure_months}')
 
 
 class DemoData(Enum):

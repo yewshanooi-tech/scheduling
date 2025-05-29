@@ -9,13 +9,13 @@ from typing import Annotated
 
 
 @dataclass
-class Shift:
-    day_of_week: str
-    start_time: time
-    end_time: time
+class Florist:
+    name: str
+    skill: str
+    tenure_months: int
 
     def __str__(self):
-        return f'{self.day_of_week} {self.start_time.strftime("%H:%M")}'
+        return f'{self.name} {self.skill} {self.tenure_months}'
 
 
 @dataclass
@@ -23,33 +23,46 @@ class Team:
     name: str
     # lead: str
     # acting_lead: str
-    # members: str
 
     def __str__(self):
         return f'{self.name}'
+
+
+@dataclass
+class Shift:
+    day_of_week: str
+    start_time: time
+    end_time: time
+
+    def __str__(self):
+        return f'{self.day_of_week} {self.start_time.strftime("%H:%M")} {self.end_time.strftime("%H:%M")}'
 
 
 @planning_entity
 @dataclass
 class Assignment:
     id: Annotated[str, PlanningId]
-    florist: str
-    skill: str
-    tenure_months: int
-    shift: Annotated[Shift | None, PlanningVariable] = field(default=None)
+    florist: Florist    # Referenced from Florist class
     team: Annotated[Team | None, PlanningVariable] = field(default=None)
+    shift: Annotated[Shift | None, PlanningVariable] = field(default=None)
+
+    def __str__(self):
+        return f'{self.florist.name} {self.team.name if self.team else "None"} {self.shift.day_of_week if self.shift else "None"}'
 
 
 @planning_solution
 @dataclass
 class Timetable:
     id: str
+    florists: Annotated[list[Florist],
+                        ProblemFactCollectionProperty,
+                        ValueRangeProvider]
+    teams: Annotated[list[Team],
+                    ProblemFactCollectionProperty,
+                    ValueRangeProvider]
     shifts: Annotated[list[Shift],
                          ProblemFactCollectionProperty,
                          ValueRangeProvider]
-    teams: Annotated[list[Team],
-                     ProblemFactCollectionProperty,
-                     ValueRangeProvider]
     assignments: Annotated[list[Assignment],
                        PlanningEntityCollectionProperty]
-    score: Annotated[HardSoftScore, PlanningScore] = field(default=None)  # type: ignore[assignment]
+    score: Annotated[HardSoftScore, PlanningScore] = field(default=None)    # type: ignore[assignment]
