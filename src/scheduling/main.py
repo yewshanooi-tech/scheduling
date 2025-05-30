@@ -58,7 +58,7 @@ def main():
 
 
 def load_timetable_from_csv(csv_path: str) -> Timetable:
-    # CSV columns: florist,skill,tenure_months,day_of_week,start_time,end_time,team
+    # CSV columns: florist,skill,tenure_months,day_of_week,start_time,end_time,team,preferred_day_off
     assignments = []
     shift_set = set()
     team_set = set()
@@ -70,16 +70,16 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             florist_name = row['florist']
             skill = row['skill']
             tenure_months = int(row['tenure_months'])
+            preferred_day_off = row.get('preferred_day_off', '') or ''
             if florist_name not in florist_map:
-                florist_map[florist_name] = Florist(florist_name, skill, tenure_months)
+                florist_map[florist_name] = Florist(florist_name, skill, tenure_months, preferred_day_off)
             day_of_week = row['day_of_week']
             start_time = datetime.strptime(row['start_time'], '%H:%M').time()
             end_time = datetime.strptime(row['end_time'], '%H:%M').time()
             team_name = row['team']
+            assignments.append((florist_name, day_of_week, start_time, end_time, team_name))
             shift_set.add((day_of_week, start_time, end_time))
             team_set.add(team_name)
-            assignments.append((florist_name, day_of_week, start_time, end_time, team_name))
-
             # Collect florists per team for lead selection
             team_florists.setdefault(team_name, []).append(florist_map[florist_name])
 

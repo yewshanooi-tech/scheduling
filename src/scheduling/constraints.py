@@ -12,13 +12,18 @@ def define_constraints(constraint_factory: ConstraintFactory):
     return [
         # Hard constraints
         shift_conflict(constraint_factory),
-        team_conflict(constraint_factory),
-        overlapping_shift_conflict(constraint_factory),
-        team_lead_conflict(constraint_factory),
-        team_shift_conflict(constraint_factory)
+        team_capacity(constraint_factory),
+        overlapping_shifts(constraint_factory),
+        no_team_lead(constraint_factory),
+        same_shift_team(constraint_factory),
+
+        # Soft constraints
+        preferred_day_off(constraint_factory)
     ]
 
 
+
+# GETTERS
 
 def get_shift(a: Assignment) -> object:
     return a.shift
@@ -45,6 +50,8 @@ def get_team(a: Assignment) -> object:
 
 
 
+# HARD CONSTRAINTS
+
 # A florist can work at most 1 shift at the same time.
 def shift_conflict(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
@@ -56,44 +63,56 @@ def shift_conflict(constraint_factory: ConstraintFactory) -> Constraint:
 
 
 # A team can accommodate at most 4 florists at the same time.
-def team_conflict(constraint_factory: ConstraintFactory) -> Constraint:
+def team_capacity(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each(Assignment)
             .group_by(lambda a: (a.team, a.shift), ConstraintCollectors.count())
             .filter(lambda _, count: count > 4)
             .penalize(HardSoftScore.ONE_HARD, lambda _, count: count - 4)
-            .as_constraint("Team capacity conflict"))
+            .as_constraint("Team capacity"))
 
 
 # A florist cannot be assigned to overlapping shifts.
-def overlapping_shift_conflict(constraint_factory: ConstraintFactory) -> Constraint:
+def overlapping_shifts(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each_unique_pair(Assignment,
                                   Joiners.equal(get_florist_name),
                                   Joiners.overlapping(get_shift_start, get_shift_end))
             .penalize(HardSoftScore.ONE_HARD, lambda a1, a2: 1)
-            .as_constraint("Overlapping shift conflict"))
+            .as_constraint("Overlapping shift"))
 
 
 # Each team should have a lead assigned with tenure > 3 months among assigned florists.
-def team_lead_conflict(constraint_factory: ConstraintFactory) -> Constraint:
+def no_team_lead(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each(Assignment)
             .filter(lambda a: a.team is not None)
             .group_by(lambda a: a.team, ConstraintCollectors.to_list())
             .filter(lambda team, assignments: not any(a.florist.tenure_months > 3 for a in assignments))
             .penalize(HardSoftScore.ONE_HARD, lambda team, assignments: 1)
-            .as_constraint("No team lead conflict"))
+            .as_constraint("No team lead"))
 
 
 # 2 different florists from the same team cannot work the same shift.
-def team_shift_conflict(constraint_factory: ConstraintFactory) -> Constraint:
+def same_shift_team(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each_unique_pair(Assignment,
                                   Joiners.equal(get_team),
                                   Joiners.equal(get_shift))
             .filter(lambda a1, a2: a1.florist != a2.florist)
             .penalize(HardSoftScore.ONE_HARD, lambda a1, a2: 1)
-            .as_constraint("Same shift same team conflict"))
+            .as_constraint("Same shift same team"))
+
+
+
+# SOFT CONSTRAINTS
+
+# Florist day off should be respected.
+def preferred_day_off(constraint_factory: ConstraintFactory) -> Constraint:
+    return (constraint_factory
+            .for_each(Assignment)
+            .filter(lambda a: a.florist.preferred_day_off is not None and a.shift is not None and a.shift.day_of_week == a.florist.preferred_day_off)
+            .penalize(HardSoftScore.ONE_SOFT, lambda a: 1)
+            .as_constraint("Florist day off"))
 
 
