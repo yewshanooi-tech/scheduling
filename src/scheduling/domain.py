@@ -21,11 +21,11 @@ class Florist:
 @dataclass
 class Team:
     name: str
-    # lead: str
-    # acting_lead: str
+    lead: Florist | None = None
+    # acting_lead:
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} {self.lead.name if self.lead else "None"}'
 
 
 @dataclass

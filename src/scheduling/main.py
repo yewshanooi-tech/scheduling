@@ -63,6 +63,7 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
     shift_set = set()
     team_set = set()
     florist_map = {}
+    team_florists = {}
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
@@ -78,16 +79,29 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             shift_set.add((day_of_week, start_time, end_time))
             team_set.add(team_name)
             assignments.append((florist_name, day_of_week, start_time, end_time, team_name))
+            # Collect florists per team for lead selection
+            team_florists.setdefault(team_name, []).append(florist_map[florist_name])
 
     # Define the correct weekday order
-    weekday_order = {'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6}
+    day_order = {'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6}
     def shift_sort_key(x):
         day, start, end = x
-        return (weekday_order.get(day.upper(), 99), start, end)
+        return (day_order.get(day.upper(), 99), start, end)
     shifts = [Shift(day, start, end) for (day, start, end) in sorted(shift_set, key=shift_sort_key)]
 
+    # Assign lead for each team (tenure > 3 months)
+    teams = []
+    for name in sorted(team_set):
+        florists = team_florists.get(name, [])
+        eligible = [f for f in florists if f.tenure_months > 3]
+        lead = max(eligible, key=lambda f: f.tenure_months) if eligible else None
+        teams.append(Team(name, lead))
 
-    teams = [Team(name) for name in sorted(team_set)]
+    # Debug Logs: Show teams and their leads
+    print("\n────────────────────\n")
+    for team in teams:
+        print(f"Team: {team.name}, Lead: {team.lead.name if team.lead else 'None'}")
+
     shift_map = {(s.day_of_week, s.start_time, s.end_time): s for s in shifts}
     team_map = {t.name: t for t in teams}
     def id_generator():

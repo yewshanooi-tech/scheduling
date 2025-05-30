@@ -3,7 +3,7 @@ from timefold.solver.score import (constraint_provider, HardSoftScore, Joiners,
 # from datetime import time
 from typing import Optional
 
-from .domain import Assignment
+from .domain import Assignment, Team
 
 
 
@@ -11,9 +11,10 @@ from .domain import Assignment
 def define_constraints(constraint_factory: ConstraintFactory):
     return [
         # Hard constraints
-        florist_conflict(constraint_factory),
+        shift_conflict(constraint_factory),
         team_conflict(constraint_factory),
-        no_overlapping_shifts(constraint_factory)
+        overlapping_shift_conflict(constraint_factory),
+        team_lead_conflict(constraint_factory)
     ]
 
 
@@ -41,13 +42,13 @@ def get_florist_name(a: Assignment) -> object:
 
 
 # A florist can work at most 1 shift at the same time.
-def florist_conflict(constraint_factory: ConstraintFactory) -> Constraint:
+def shift_conflict(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each_unique_pair(Assignment,
                                   Joiners.equal(get_shift),
                                   Joiners.equal(get_florist))
             .penalize(HardSoftScore.ONE_HARD, lambda a1, a2: 1)
-            .as_constraint("Florist conflict"))
+            .as_constraint("Shift conflict"))
 
 
 # A team can accommodate at most 4 florists at the same time.
@@ -61,12 +62,21 @@ def team_conflict(constraint_factory: ConstraintFactory) -> Constraint:
 
 
 # A florist cannot be assigned to overlapping shifts.
-def no_overlapping_shifts(constraint_factory: ConstraintFactory) -> Constraint:
+def overlapping_shift_conflict(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each_unique_pair(Assignment,
                                   Joiners.equal(get_florist_name),
                                   Joiners.overlapping(get_shift_start, get_shift_end))
             .penalize(HardSoftScore.ONE_HARD, lambda a1, a2: 1)
-            .as_constraint("Overlapping shift"))
+            .as_constraint("Overlapping shift conflict"))
+
+
+# Each team should have a lead assigned.
+def team_lead_conflict(constraint_factory: ConstraintFactory) -> Constraint:
+    return (constraint_factory
+            .for_each(Team)
+            .filter(lambda a: a.lead is None)
+            .penalize(HardSoftScore.ONE_HARD, lambda t: 1)
+            .as_constraint("No team lead conflict"))
 
 

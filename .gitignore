@@ -1,2 +1,3 @@
 .venv
+src/scheduling/__pycache__/
 sample_data.txt
