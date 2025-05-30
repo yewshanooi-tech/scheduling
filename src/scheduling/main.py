@@ -79,6 +79,7 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             shift_set.add((day_of_week, start_time, end_time))
             team_set.add(team_name)
             assignments.append((florist_name, day_of_week, start_time, end_time, team_name))
+
             # Collect florists per team for lead selection
             team_florists.setdefault(team_name, []).append(florist_map[florist_name])
 
@@ -87,20 +88,9 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
     def shift_sort_key(x):
         day, start, end = x
         return (day_order.get(day.upper(), 99), start, end)
+
     shifts = [Shift(day, start, end) for (day, start, end) in sorted(shift_set, key=shift_sort_key)]
-
-    # Assign lead for each team (tenure > 3 months)
-    teams = []
-    for name in sorted(team_set):
-        florists = team_florists.get(name, [])
-        eligible = [f for f in florists if f.tenure_months > 3]
-        lead = max(eligible, key=lambda f: f.tenure_months) if eligible else None
-        teams.append(Team(name, lead))
-
-    # Debug Logs: Show teams and their leads
-    print("\n────────────────────\n")
-    for team in teams:
-        print(f"Team: {team.name}, Lead: {team.lead.name if team.lead else 'None'}")
+    teams = [Team(name) for name in sorted(team_set)]
 
     shift_map = {(s.day_of_week, s.start_time, s.end_time): s for s in shifts}
     team_map = {t.name: t for t in teams}
@@ -139,6 +129,27 @@ def print_timetable(timetable: Timetable) -> None:
     row_format = ("|{:<" + str(column_width) + "}") * (len(teams) + 1) + "|"
     sep_format = "+" + (("-" * column_width + "+") * (len(teams) + 1))
 
+    # Determine lead / acting lead for each team based on final assignments
+    team_florists = {team.name: [] for team in teams}
+    for a in assignments:
+        if a.team is not None:
+            team_florists[a.team.name].append(a.florist)
+    team_leads = {}
+    team_acting_leads = {}
+    for team in teams:
+        # Get all the eligible florists from a team
+        eligible = [f for f in team_florists[team.name] if f.tenure_months > 3]
+
+        # Sort eligible florists from highest to lowest tenure
+        sorted_eligible = sorted(eligible, key=lambda f: f.tenure_months, reverse=True)
+
+        # Set lead / acting lead based on sorted eligible florists
+        lead = sorted_eligible[0] if len(sorted_eligible) > 0 else None
+        acting_lead = sorted_eligible[1] if len(sorted_eligible) > 1 else None
+
+        team_leads[team.name] = lead.name if lead else None
+        team_acting_leads[team.name] = acting_lead.name if acting_lead else None
+
     LOGGER.info(sep_format)
     LOGGER.info(row_format.format('', *[f'Team {team.name}' for team in teams]))
     LOGGER.info(sep_format)
@@ -154,7 +165,16 @@ def print_timetable(timetable: Timetable) -> None:
                 ) if (team.name, shift.day_of_week, shift.start_time) not in assignment_map else assignment_map[(team.name, shift.day_of_week, shift.start_time)]
 
         row_assignments = [*get_row_assignments()]
-        LOGGER.info(row_format.format(shift.day_of_week, *[a.florist.name for a in row_assignments]))
+
+        def get_florist_display(a, team):
+            if a.florist.name == team_leads.get(team.name):
+                return a.florist.name + ' *'
+            elif a.florist.name == team_acting_leads.get(team.name):
+                return a.florist.name + ' **'
+            else:
+                return a.florist.name
+
+        LOGGER.info(row_format.format(shift.day_of_week, *[get_florist_display(a, a.team) if a.team else a.florist.name for a in row_assignments]))
         LOGGER.info(row_format.format(f"{shift.start_time.strftime('%H:%M')} - {shift.end_time.strftime('%H:%M')}", *[a.florist.skill for a in row_assignments]))
         LOGGER.info(row_format.format('', *[f"{a.florist.tenure_months} months" if a.florist.tenure_months != 0 else '' for a in row_assignments]))
         LOGGER.info(sep_format)

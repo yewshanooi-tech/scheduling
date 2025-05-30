@@ -22,10 +22,10 @@ class Florist:
 class Team:
     name: str
     lead: Florist | None = None
-    # acting_lead:
+    acting_lead: Florist | None = None
 
     def __str__(self):
-        return f'{self.name} {self.lead.name if self.lead else "None"}'
+        return f'{self.name} {self.lead.name if self.lead else "None"} {self.acting_lead.name if self.acting_lead else "None"}'
 
 
 @dataclass

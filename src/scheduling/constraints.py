@@ -14,7 +14,8 @@ def define_constraints(constraint_factory: ConstraintFactory):
         shift_conflict(constraint_factory),
         team_conflict(constraint_factory),
         overlapping_shift_conflict(constraint_factory),
-        team_lead_conflict(constraint_factory)
+        team_lead_conflict(constraint_factory),
+        team_shift_conflict(constraint_factory)
     ]
 
 
@@ -38,6 +39,9 @@ def get_florist(a: Assignment) -> object:
 
 def get_florist_name(a: Assignment) -> object:
     return a.florist.name
+
+def get_team(a: Assignment) -> object:
+    return a.team
 
 
 
@@ -71,12 +75,25 @@ def overlapping_shift_conflict(constraint_factory: ConstraintFactory) -> Constra
             .as_constraint("Overlapping shift conflict"))
 
 
-# Each team should have a lead assigned.
+# Each team should have a lead assigned with tenure > 3 months among assigned florists.
 def team_lead_conflict(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
-            .for_each(Team)
-            .filter(lambda a: a.lead is None)
-            .penalize(HardSoftScore.ONE_HARD, lambda t: 1)
+            .for_each(Assignment)
+            .filter(lambda a: a.team is not None)
+            .group_by(lambda a: a.team, ConstraintCollectors.to_list())
+            .filter(lambda team, assignments: not any(a.florist.tenure_months > 3 for a in assignments))
+            .penalize(HardSoftScore.ONE_HARD, lambda team, assignments: 1)
             .as_constraint("No team lead conflict"))
+
+
+# 2 different florists from the same team cannot work the same shift.
+def team_shift_conflict(constraint_factory: ConstraintFactory) -> Constraint:
+    return (constraint_factory
+            .for_each_unique_pair(Assignment,
+                                  Joiners.equal(get_team),
+                                  Joiners.equal(get_shift))
+            .filter(lambda a1, a2: a1.florist != a2.florist)
+            .penalize(HardSoftScore.ONE_HARD, lambda a1, a2: 1)
+            .as_constraint("Same shift same team conflict"))
 
 
