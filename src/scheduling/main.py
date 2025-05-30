@@ -80,6 +80,7 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             assignments.append((florist_name, day_of_week, start_time, end_time, team_name))
             shift_set.add((day_of_week, start_time, end_time))
             team_set.add(team_name)
+
             # Collect florists per team for lead selection
             team_florists.setdefault(team_name, []).append(florist_map[florist_name])
 
