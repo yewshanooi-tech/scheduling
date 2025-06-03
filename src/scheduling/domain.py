@@ -11,16 +11,6 @@ from typing import Annotated
 @dataclass
 class Florist:
     name: str
-    level: str
-    rest_days: list[str] = field(default_factory=list)
-
-    def __str__(self):
-        return f'{self.name} {self.level} {self.rest_days}'
-
-
-@dataclass
-class Team:
-    name: str
 
     def __str__(self):
         return f'{self.name}'
@@ -28,24 +18,22 @@ class Team:
 
 @dataclass
 class Shift:
-    day_of_week: str
     start_time: time
     end_time: time
 
     def __str__(self):
-        return f'{self.day_of_week} {self.start_time.strftime("%H:%M")} {self.end_time.strftime("%H:%M")}'
+        return f'{self.start_time.strftime("%H:%M")} {self.end_time.strftime("%H:%M")}'
 
 
 @planning_entity
 @dataclass
 class Assignment:
     id: Annotated[str, PlanningId]
-    florist: Florist    # Referenced from Florist class
-    team: Annotated[Team | None, PlanningVariable] = field(default=None)
+    florist: Florist
     shift: Annotated[Shift | None, PlanningVariable] = field(default=None)
 
     def __str__(self):
-        return f'{self.florist.name} {self.team.name if self.team else "None"} {self.shift.day_of_week if self.shift else "None"}'
+        return f'{self.florist.name} {self.shift.start_time.strftime("%H:%M") if self.shift else "None"}'
 
 
 @planning_solution
@@ -55,9 +43,6 @@ class Timetable:
     florists: Annotated[list[Florist],
                         ProblemFactCollectionProperty,
                         ValueRangeProvider]
-    teams: Annotated[list[Team],
-                    ProblemFactCollectionProperty,
-                    ValueRangeProvider]
     shifts: Annotated[list[Shift],
                          ProblemFactCollectionProperty,
                          ValueRangeProvider]
