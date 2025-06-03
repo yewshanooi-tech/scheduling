@@ -157,9 +157,7 @@ def print_timetable(timetable: Timetable) -> None:
             LOGGER.info(f'    {a.florist.name} - {a.florist.level}')
 
 
-class DemoData(Enum):
-    SMALL = 'SMALL'
-    LARGE = 'LARGE'
+
 
 
 if __name__ == '__main__':
