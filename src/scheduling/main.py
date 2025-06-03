@@ -58,7 +58,7 @@ def main():
 
 
 def load_timetable_from_csv(csv_path: str) -> Timetable:
-    # CSV columns: florist,skill,tenure_months,day_of_week,start_time,end_time,team,preferred_day_off
+    # CSV columns: florist_name,level,tenure_months,day_of_week,start_time,end_time,team,preferred_day_off
     assignments = []
     shift_set = set()
     team_set = set()
@@ -67,12 +67,12 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
     with open(csv_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            florist_name = row['florist']
-            skill = row['skill']
+            florist_name = row['florist_name']
+            level = row['level']
             tenure_months = int(row['tenure_months'])
             preferred_day_off = row.get('preferred_day_off', '') or ''
             if florist_name not in florist_map:
-                florist_map[florist_name] = Florist(florist_name, skill, tenure_months, preferred_day_off)
+                florist_map[florist_name] = Florist(florist_name, level, tenure_months, preferred_day_off)
             day_of_week = row['day_of_week']
             start_time = datetime.strptime(row['start_time'], '%H:%M').time()
             end_time = datetime.strptime(row['end_time'], '%H:%M').time()
@@ -176,7 +176,7 @@ def print_timetable(timetable: Timetable) -> None:
                 return a.florist.name
 
         LOGGER.info(row_format.format(shift.day_of_week, *[get_florist_display(a, a.team) if a.team else a.florist.name for a in row_assignments]))
-        LOGGER.info(row_format.format(f"{shift.start_time.strftime('%H:%M')} - {shift.end_time.strftime('%H:%M')}", *[a.florist.skill for a in row_assignments]))
+        LOGGER.info(row_format.format(f"{shift.start_time.strftime('%H:%M')} - {shift.end_time.strftime('%H:%M')}", *[a.florist.level for a in row_assignments]))
         LOGGER.info(row_format.format('', *[f"{a.florist.tenure_months} months" if a.florist.tenure_months != 0 else '' for a in row_assignments]))
         LOGGER.info(sep_format)
 
@@ -185,7 +185,7 @@ def print_timetable(timetable: Timetable) -> None:
         LOGGER.info("")
         LOGGER.info("Unassigned assignments")
         for a in unassigned:
-            LOGGER.info(f'    {a.florist.name} - {a.florist.skill} - {a.florist.tenure_months}')
+            LOGGER.info(f'    {a.florist.name} - {a.florist.level} - {a.florist.tenure_months}')
 
 
 class DemoData(Enum):

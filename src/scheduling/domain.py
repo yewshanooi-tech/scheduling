@@ -11,12 +11,12 @@ from typing import Annotated
 @dataclass
 class Florist:
     name: str
-    skill: str
+    level: str
     tenure_months: int
     preferred_day_off: str = ""
 
     def __str__(self):
-        return f'{self.name} {self.skill} {self.tenure_months} {self.preferred_day_off}'
+        return f'{self.name} {self.level} {self.tenure_months} {self.preferred_day_off}'
 
 
 @dataclass
