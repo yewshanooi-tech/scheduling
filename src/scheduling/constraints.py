@@ -14,11 +14,10 @@ def define_constraints(constraint_factory: ConstraintFactory):
         shift_conflict(constraint_factory),
         team_capacity(constraint_factory),
         overlapping_shifts(constraint_factory),
-        no_team_lead(constraint_factory),
         same_shift_team(constraint_factory),
 
         # Soft constraints
-        preferred_day_off(constraint_factory)
+        rest_day(constraint_factory)
     ]
 
 
@@ -82,17 +81,6 @@ def overlapping_shifts(constraint_factory: ConstraintFactory) -> Constraint:
             .as_constraint("Overlapping shift"))
 
 
-# Each team should have a lead assigned with tenure > 3 months among assigned florists.
-def no_team_lead(constraint_factory: ConstraintFactory) -> Constraint:
-    return (constraint_factory
-            .for_each(Assignment)
-            .filter(lambda a: a.team is not None)
-            .group_by(lambda a: a.team, ConstraintCollectors.to_list())
-            .filter(lambda team, assignments: not any(a.florist.tenure_months > 3 for a in assignments))
-            .penalize(HardSoftScore.ONE_HARD, lambda team, assignments: 1)
-            .as_constraint("No team lead"))
-
-
 # 2 different florists from the same team cannot work the same shift.
 def same_shift_team(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
@@ -107,12 +95,12 @@ def same_shift_team(constraint_factory: ConstraintFactory) -> Constraint:
 
 # SOFT CONSTRAINTS
 
-# Florist day off should be respected.
-def preferred_day_off(constraint_factory: ConstraintFactory) -> Constraint:
+# Florist rest day should be respected.
+def rest_day(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each(Assignment)
-            .filter(lambda a: a.florist.preferred_day_off is not None and a.shift is not None and a.shift.day_of_week == a.florist.preferred_day_off)
+            .filter(lambda a: a.florist.rest_day is not None and a.shift is not None and a.shift.day_of_week == a.florist.rest_day)
             .penalize(HardSoftScore.ONE_SOFT, lambda a: 1)
-            .as_constraint("Florist day off"))
+            .as_constraint("Florist rest day"))
 
 

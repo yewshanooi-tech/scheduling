@@ -12,21 +12,18 @@ from typing import Annotated
 class Florist:
     name: str
     level: str
-    tenure_months: int
-    preferred_day_off: str = ""
+    rest_day: str = ""
 
     def __str__(self):
-        return f'{self.name} {self.level} {self.tenure_months} {self.preferred_day_off}'
+        return f'{self.name} {self.level} {self.rest_day}'
 
 
 @dataclass
 class Team:
     name: str
-    lead: Florist | None = None
-    acting_lead: Florist | None = None
 
     def __str__(self):
-        return f'{self.name} {self.lead.name if self.lead else "None"} {self.acting_lead.name if self.acting_lead else "None"}'
+        return f'{self.name}'
 
 
 @dataclass
