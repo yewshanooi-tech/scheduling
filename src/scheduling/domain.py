@@ -12,10 +12,10 @@ from typing import Annotated
 class Florist:
     name: str
     level: str
-    rest_day: str = ""
+    rest_days: list[str] = field(default_factory=list)
 
     def __str__(self):
-        return f'{self.name} {self.level} {self.rest_day}'
+        return f'{self.name} {self.level} {self.rest_days}'
 
 
 @dataclass

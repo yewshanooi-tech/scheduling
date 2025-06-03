@@ -17,7 +17,7 @@ def define_constraints(constraint_factory: ConstraintFactory):
         same_shift_team(constraint_factory),
 
         # Soft constraints
-        rest_day(constraint_factory)
+        rest_days(constraint_factory)
     ]
 
 
@@ -96,10 +96,10 @@ def same_shift_team(constraint_factory: ConstraintFactory) -> Constraint:
 # SOFT CONSTRAINTS
 
 # Florist rest day should be respected.
-def rest_day(constraint_factory: ConstraintFactory) -> Constraint:
+def rest_days(constraint_factory: ConstraintFactory) -> Constraint:
     return (constraint_factory
             .for_each(Assignment)
-            .filter(lambda a: a.florist.rest_day is not None and a.shift is not None and a.shift.day_of_week == a.florist.rest_day)
+            .filter(lambda a: a.florist.rest_days is not None and a.shift is not None and a.shift.day_of_week.upper() in [d.upper() for d in a.florist.rest_days])
             .penalize(HardSoftScore.ONE_SOFT, lambda a: 1)
             .as_constraint("Florist rest day"))
 

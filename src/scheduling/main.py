@@ -58,7 +58,7 @@ def main():
 
 
 def load_timetable_from_csv(csv_path: str) -> Timetable:
-    # CSV columns: florist_name,level,team,day_of_week,start_time,end_time,rest_day
+    # CSV columns: florist_name,level,team,day_of_week,start_time,end_time,rest_days
     assignments = []
     shift_set = set()
     team_set = set()
@@ -69,9 +69,9 @@ def load_timetable_from_csv(csv_path: str) -> Timetable:
             florist_name = row['florist_name']
             level = row['level']
             team_name = row['team']
-            rest_day = row.get('rest_day', '') or ''
+            rest_days = [d.strip().upper() for d in (row.get('rest_days', '') or '').split(',') if d.strip()]
             if florist_name not in florist_map:
-                florist_map[florist_name] = Florist(florist_name, level, rest_day)
+                florist_map[florist_name] = Florist(florist_name, level, rest_days)
             day_of_week = row['day_of_week']
             start_time = datetime.strptime(row['start_time'], '%H:%M').time()
             end_time = datetime.strptime(row['end_time'], '%H:%M').time()
@@ -135,7 +135,7 @@ def print_timetable(timetable: Timetable) -> None:
             for team in teams:
                 yield Assignment(
                     id='',
-                    florist=Florist('', '', ''),
+                    florist=Florist('', '', []),
                     team=team,
                     shift=shift
                 ) if (team.name, shift.day_of_week, shift.start_time) not in assignment_map else assignment_map[(team.name, shift.day_of_week, shift.start_time)]
