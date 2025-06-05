@@ -1,6 +1,6 @@
-florist_name,level,team,day_of_week,start_time,end_time,rest_days
-Alice,Senior,A,MONDAY,07:30,16:30,"TUESDAY,WEDNESDAY"
-Bob,Mid,B,TUESDAY,08:00,12:00,"WEDNESDAY,FRIDAY"
-Carol,Junior,A,WEDNESDAY,09:00,18:00,"THURSDAY,SATURDAY"
-Tom,Senior,B,THURSDAY,10:00,19:00,"FRIDAY,SUNDAY"
-Jerry,Mid,A,FRIDAY,07:30,16:30,
+florist_name,start_time,end_time
+Alice,07:30,16:30
+Bob,08:00,12:00
+Carol,09:00,18:00
+Tom,10:00,19:00
+Jerry,07:30,16:30
